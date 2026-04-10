@@ -9,7 +9,7 @@ jobs:
   job-hunt:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Permissão para salvar o CSV no repositório
+      contents: write # Essencial para o push funcionar
 
     steps:
     - name: Checkout Código
@@ -20,10 +20,15 @@ jobs:
       with:
         python-version: '3.10'
 
+    - name: Instalar Google Chrome
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+
     - name: Instalar Dependências
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install selenium webdriver-manager pandas
 
     - name: Executar Scraper
       run: python scripts/scraper.py
@@ -32,6 +37,9 @@ jobs:
       run: |
         git config --global user.name "Automation Bot"
         git config --global user.email "bot@github.com"
+        # Garante que a pasta data existe para o git não dar erro
+        mkdir -p data
         git add data/vagas.csv
+        # O || exit 0 evita que o workflow marque "erro" se não houver vagas novas para commitar
         git commit -m "Update: Novas vagas [$(date +'%d/%m/%Y')]" || exit 0
         git push
